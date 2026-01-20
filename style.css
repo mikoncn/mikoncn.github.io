@@ -1,0 +1,222 @@
+@charset "UTF-8";
+
+:root {
+  /* 像素级绿色阶 (Green Scale) 实验室级别调色 */
+  --g-ultradark: #000500;
+  --g-deep: #001a00;
+  --g-base: #00ff00;
+  --g-bright: #adff2f;
+  --g-glow: rgba(0, 255, 0, 0.6);
+  --g-scanline: rgba(0, 255, 0, 0.03); /* 减弱扫描线强度 */
+
+  --crt-flicker: 0.15s;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: none; /* 隐藏原生鼠标，使用自定义指针 */
+}
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--g-ultradark);
+  color: var(--g-base);
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* 极致背景：磨砂、噪点、扫描线、摄影感 */
+.master-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  background: url("./back.jpg") center/cover no-repeat;
+  filter: grayscale(1) contrast(1.5) brightness(0.3);
+  opacity: 0.2;
+}
+
+#matrix-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -5;
+  opacity: 0.3; /* 稍微减弱代码流以突出模型 */
+}
+
+/* CRT 模拟层 (显著减弱) */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  /* 降低渐变不透明度 */
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.03),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.03)
+    );
+  background-size:
+    100% 3px,
+    3px 100%;
+}
+
+/* 扫描线动画 (减慢且减淡) */
+.scanline-effect {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--g-scanline) 50%,
+    transparent
+  );
+  background-size: 100% 8px; /* 增加线条间距 */
+  animation: scan 20s linear infinite; /* 减慢速度 */
+}
+
+@keyframes scan {
+  from {
+    background-position: 0 -100vh;
+  }
+  to {
+    background-position: 0 100vh;
+  }
+}
+
+/* 磨砂玻璃效果 */
+.glass {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  backdrop-filter: blur(12px) contrast(1.2);
+  /* 增加暗角，让中心更清晰 */
+  background: radial-gradient(
+    circle at center,
+    transparent 30%,
+    var(--g-ultradark) 100%
+  );
+}
+
+/* 自定义指针 */
+#custom-cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--g-base);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transition: transform 0.1s ease;
+}
+
+/* Spline 容器调整 (防止撑爆 + 居中 + 背景融合) */
+#spline-scene {
+    position: absolute;
+    /* 收敛布局：限制最大宽高，避免撑满屏幕边缘 */
+    width: 90vw;
+    height: 90vh;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); /* 绝对居中 */
+    z-index: 5;
+    pointer-events: auto;
+    
+    /* 核心修复：使用混合模式让黑色背景变透明 */
+    mix-blend-mode: plus-lighter; 
+    
+    overflow: visible; /* 允许内容略微溢出（比如阴影），或者 hidden 取决于 iframe 行为 */
+    /* 用户要求模型不被裁切，先用 visible 观察 */
+}
+
+#spline-scene iframe {
+    width: 100%;
+    height: 100%; 
+    border: none;
+    margin-top: 0;
+    
+    /* 修复遮挡：彻底移除 clip-path，恢复模型底部文字与完整性 */
+    clip-path: none;
+}
+
+/* UI 文字布局 */
+.interface {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.sys-log {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--g-base);
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.brand-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 5vw;
+  font-weight: 900;
+  color: var(--g-base);
+  text-shadow: 0 0 20px var(--g-glow);
+  letter-spacing: 1vw;
+  line-height: 0.9;
+}
+
+.glitch-text {
+  position: relative;
+}
+
+/* 底部状态栏 */
+footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid var(--g-scanline);
+  padding-top: 20px;
+}
+
+.data-stream {
+  font-size: 0.8rem;
+  color: var(--g-bright);
+}
+
+.btn-startup {
+  pointer-events: auto;
+  background: transparent;
+  border: 1px solid var(--g-base);
+  color: var(--g-base);
+  padding: 10px 30px;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  box-shadow: 0 0 10px var(--g-glow);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.btn-startup:hover {
+  background: var(--g-base);
+  color: var(--g-ultradark);
+  box-shadow: 0 0 30px var(--g-base);
+}
