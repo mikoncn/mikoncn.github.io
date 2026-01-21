@@ -130,8 +130,8 @@ html {
     z-index: 5;
     pointer-events: auto;
     
-    /* 核心修复：使用混合模式让黑色背景变透明 */
-    mix-blend-mode: plus-lighter; 
+    /* 优化：Spline 已设置透明背景，不再需要混合模式，还原模型真实色彩 */
+    /* mix-blend-mode: plus-lighter; */
     
     overflow: visible; /* 允许内容略微溢出（比如阴影），或者 hidden 取决于 iframe 行为 */
     /* 用户要求模型不被裁切，先用 visible 观察 */
@@ -219,4 +219,19 @@ footer {
   background: var(--g-base);
   color: var(--g-ultradark);
   box-shadow: 0 0 30px var(--g-base);
+}
+
+/* Logo 遮挡补丁 (迭代 5) */
+.logo-patch {
+    position: absolute;
+    bottom: 0px;       /* 紧贴容器底部 */
+    right: 0px;        /* 紧贴容器右侧 */
+    width: 200px;      /* 覆盖宽度，Logo 大约 140px，留足余量 */
+    height: 60px;      /* 覆盖高度 */
+    background-color: #000; /* 纯黑背景，与网页大背景融合 */
+    border-top-left-radius: 20px; /* 左上角圆角，平滑过渡 */
+    z-index: 10;        /* 确保位于 iframe 之上 */
+    pointer-events: none; /* 防止阻挡该区域可能的交互 */
+    
+    /* 调试高亮 (验证完成后移除): background-color: red; */ 
 }
